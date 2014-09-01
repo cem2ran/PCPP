@@ -1,4 +1,4 @@
-package PCPP.exercise_week_1;
+package exercise_week_1;
 
 public class exercise_1_3 {
 

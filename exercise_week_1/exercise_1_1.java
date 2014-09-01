@@ -1,4 +1,4 @@
-package PCPP.exercise_week_1;
+package exercise_week_1;
 
 import java.io.IOException;
 
