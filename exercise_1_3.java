@@ -1,5 +1,3 @@
-package exercise_week_1;
-
 public class exercise_1_3 {
 
 	public static void main(String[] args) {

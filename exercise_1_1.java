@@ -1,5 +1,3 @@
-package exercise_week_1;
-
 import java.io.IOException;
 
 public class exercise_1_1 {
