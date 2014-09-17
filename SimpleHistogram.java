@@ -23,13 +23,13 @@ class SimpleHistogram {
 		Histogram hist3 = new Histogram3(range);
 		TestCountPrimes.countParallelN(range, 10, hist3);
 		long end2 = System.nanoTime();
-		// dump(hist3);
+		 dump(hist3);
 
 		long start3 = System.nanoTime();
 		Histogram hist4 = new Histogram4(range);
 		TestCountPrimes.countParallelN(range, 10, hist4);
 		long end3 = System.nanoTime();
-
+		
 		System.out.println("using Histogram2: "
 				+ TimeUnit.MILLISECONDS.convert(end1 - start1,
 						TimeUnit.NANOSECONDS));
@@ -43,7 +43,7 @@ class SimpleHistogram {
 
 	public static void dump(Histogram histogram) {
 		int totalCount = 0;
-		for (int item = 0; item < histogram.getSpan(); item++) {
+		for (int item = 0; item < 30; item++) {
 			System.out.printf("%4d: %9d%n", item, histogram.getCount(item));
 			totalCount += histogram.getCount(item);
 		}
