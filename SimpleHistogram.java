@@ -1,4 +1,6 @@
+import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicIntegerArray;
 
 // For week 3
@@ -13,16 +15,24 @@ class SimpleHistogram {
 		// dump(histogram);
 		int range = 5_000_000;
 		long start1 = System.nanoTime();
-//		 dump();
-		TestCountPrimes.countParallelN(range, 10, new Histogram2(range));
+		Histogram hist2 = new Histogram2(range);
+		TestCountPrimes.countParallelN(range, 10, hist2);
 		long end1 = System.nanoTime();
+//		 dump(hist2);
 		long start2 = System.nanoTime();
-//		dump();
-		TestCountPrimes.countParallelN(range, 10, new Histogram3(range));
+		Histogram hist3 = new Histogram3(range);
+		TestCountPrimes.countParallelN(range, 10, hist3);
 		long end2 = System.nanoTime();
+//		dump(hist3);
+		
+		long start3 = System.nanoTime();
+		Histogram hist4 = new Histogram4(range);
+		TestCountPrimes.countParallelN(range, 10, hist4);
+		long end3 = System.nanoTime();
 		
 		System.out.println("using Histogram2: "+TimeUnit.MILLISECONDS.convert(end1-start1, TimeUnit.NANOSECONDS));
 		System.out.println("using Histogram3: "+TimeUnit.MILLISECONDS.convert(end2-start2, TimeUnit.NANOSECONDS));
+		System.out.println("using Histogram4: "+TimeUnit.MILLISECONDS.convert(end3-start3, TimeUnit.NANOSECONDS));
 //		System.out.println("faster by: "+);
 	}
 
@@ -90,12 +100,37 @@ class Histogram2 implements Histogram {
 		return counts.length;
 	}
 }
-
+//Exercise 3.1.3
+//we can remove the synchronization because the counts item is not exposed and operations are done atomically in each of the AtomicInter instances
 class Histogram3 implements Histogram{
+
+	private ArrayList<AtomicInteger> counts;
+	
+	public Histogram3(int span){
+		counts = new ArrayList<AtomicInteger>();
+		for (int i = 0; i < span; i++) {
+			counts.add(new AtomicInteger(0));
+		}
+	}
+
+	public void increment(int item) {
+		counts.get(item).incrementAndGet();
+	}
+
+	public int getCount(int item) {
+		return counts.get(item).intValue();
+	}
+
+	public int getSpan() {
+		return counts.size();
+	}
+}
+
+class Histogram4 implements Histogram{
 
 	private AtomicIntegerArray counts;
 	
-	public Histogram3(int span){
+	public Histogram4(int span){
 		counts = new AtomicIntegerArray(span);
 	}
 
