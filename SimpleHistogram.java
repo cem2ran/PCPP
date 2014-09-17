@@ -125,7 +125,7 @@ class Histogram3 implements Histogram{
 		return counts.size();
 	}
 }
-
+//Exercise 3.1.4
 class Histogram4 implements Histogram{
 
 	private AtomicIntegerArray counts;
