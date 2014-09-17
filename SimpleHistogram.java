@@ -18,22 +18,27 @@ class SimpleHistogram {
 		Histogram hist2 = new Histogram2(range);
 		TestCountPrimes.countParallelN(range, 10, hist2);
 		long end1 = System.nanoTime();
-//		 dump(hist2);
+		// dump(hist2);
 		long start2 = System.nanoTime();
 		Histogram hist3 = new Histogram3(range);
 		TestCountPrimes.countParallelN(range, 10, hist3);
 		long end2 = System.nanoTime();
-//		dump(hist3);
-		
+		// dump(hist3);
+
 		long start3 = System.nanoTime();
 		Histogram hist4 = new Histogram4(range);
 		TestCountPrimes.countParallelN(range, 10, hist4);
 		long end3 = System.nanoTime();
-		
-		System.out.println("using Histogram2: "+TimeUnit.MILLISECONDS.convert(end1-start1, TimeUnit.NANOSECONDS));
-		System.out.println("using Histogram3: "+TimeUnit.MILLISECONDS.convert(end2-start2, TimeUnit.NANOSECONDS));
-		System.out.println("using Histogram4: "+TimeUnit.MILLISECONDS.convert(end3-start3, TimeUnit.NANOSECONDS));
-//		System.out.println("faster by: "+);
+
+		System.out.println("using Histogram2: "
+				+ TimeUnit.MILLISECONDS.convert(end1 - start1,
+						TimeUnit.NANOSECONDS));
+		System.out.println("using Histogram3: "
+				+ TimeUnit.MILLISECONDS.convert(end2 - start2,
+						TimeUnit.NANOSECONDS));
+		System.out.println("using Histogram4: "
+				+ TimeUnit.MILLISECONDS.convert(end3 - start3,
+						TimeUnit.NANOSECONDS));
 	}
 
 	public static void dump(Histogram histogram) {
@@ -53,6 +58,8 @@ interface Histogram {
 	public int getCount(int item);
 
 	public int getSpan();
+
+	public int[] getBuckets();
 }
 
 class Histogram1 implements Histogram {
@@ -72,6 +79,11 @@ class Histogram1 implements Histogram {
 
 	public int getSpan() {
 		return counts.length;
+	}
+
+	@Override
+	public int[] getBuckets() {
+		return counts;
 	}
 }
 
@@ -99,14 +111,25 @@ class Histogram2 implements Histogram {
 	public int getSpan() {
 		return counts.length;
 	}
+
+	@Override
+	public int[] getBuckets() {
+		// a snapshot. Should not be manipulated
+		// while cloning, thus the method is synchronized
+		synchronized (counts) {
+			return counts.clone(); 
+		}
+	}
 }
-//Exercise 3.1.3
-//we can remove the synchronization because the counts item is not exposed and operations are done atomically in each of the AtomicInter instances
-class Histogram3 implements Histogram{
+
+// Exercise 3.1.3
+// we can remove the synchronization because the counts item is not exposed and
+// operations are done atomically in each of the AtomicInter instances
+class Histogram3 implements Histogram {
 
 	private ArrayList<AtomicInteger> counts;
-	
-	public Histogram3(int span){
+
+	public Histogram3(int span) {
 		counts = new ArrayList<AtomicInteger>();
 		for (int i = 0; i < span; i++) {
 			counts.add(new AtomicInteger(0));
@@ -124,13 +147,25 @@ class Histogram3 implements Histogram{
 	public int getSpan() {
 		return counts.size();
 	}
+
+	@Override
+	public int[] getBuckets() {
+		// since the span won't change, we can simply copy - allowing updates to
+		// items that have not been copied yet.
+		int[] buckets = new int[getSpan()];
+		for (int i = 0; i < buckets.length; i++) {
+			buckets[i] = getCount(i);
+		}
+		return buckets;
+	}
 }
-//Exercise 3.1.4
-class Histogram4 implements Histogram{
+
+// Exercise 3.1.4
+class Histogram4 implements Histogram {
 
 	private AtomicIntegerArray counts;
-	
-	public Histogram4(int span){
+
+	public Histogram4(int span) {
 		counts = new AtomicIntegerArray(span);
 	}
 
@@ -145,11 +180,23 @@ class Histogram4 implements Histogram{
 	public int getSpan() {
 		return counts.length();
 	}
+
+	@Override
+	public int[] getBuckets() {
+		// since the span won't change, we can simply copy - allowing updates to
+		// items that have not been copied yet.
+		int[] buckets = new int[getSpan()];
+		for (int i = 0; i < buckets.length; i++) {
+			buckets[i] = getCount(i);
+		}
+		return buckets;
+	}
 }
 
 class TestCountPrimes {
 	// General parallel solution, using multiple threads
-	public static Histogram countParallelN(int range, int threadCount, final Histogram histogram) {
+	public static Histogram countParallelN(int range, int threadCount,
+			final Histogram histogram) {
 		final int perThread = range / threadCount;
 
 		Thread[] threads = new Thread[threadCount];
@@ -158,7 +205,7 @@ class TestCountPrimes {
 					: perThread * (t + 1);
 			threads[t] = new Thread(new Runnable() {
 				public void run() {
-					for (int i = from; i < to; i++) 
+					for (int i = from; i < to; i++)
 						histogram.increment(countFactors(i));
 				}
 			});
